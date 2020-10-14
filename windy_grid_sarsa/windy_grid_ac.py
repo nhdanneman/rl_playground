@@ -125,5 +125,7 @@ for i in range(1000):
     if i % 10 == 0:
         print(i)
         print(ns)
+        if ns < 16:
+            break
 
 
