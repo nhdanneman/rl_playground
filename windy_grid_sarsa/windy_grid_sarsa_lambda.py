@@ -64,12 +64,12 @@ def environment(state, action):
 possible_actions = [(-1, 0), (0, 1), (1,0), (0, -1)]
 # e: fraction of the time to make a random action (instead of greedy)
 e = 0.1
-# alpha: discount for rewards
-alpha = 0.1
 # LAMBDA: how many steps back in time the activity trace lasts
 LAMBDA = 4
 # gamma: how much the weight of new rewards accrues each step back through the trace
-gamma = .6
+gamma = .3
+# alpha = discount
+alpha = 0.2
 
 
 def mk_new_q_table(possible_actions):
@@ -141,16 +141,17 @@ def episode(e, alpha, LAMBDA, gamma, possible_actions):
         # SARSA-lambda Update
         # First, update the eligibility trace
         trace = update_trace(trace, LAMBDA, gamma, current_state, current_action)
-        if n_steps < 6:
-            print(trace)
+        #if n_steps < 6:
+        #    print(trace)
         # Next, compute the full update
         val_curr_sa = q_table[current_state][current_action]
         val_next_sa = q_table[next_state][next_action]
-        full_update = val_curr_sa + alpha * (-1 + val_next_sa - val_curr_sa)
+        # delta (the incremental update) = reward + gamma*Q(s1a1) - Q(s,a)
+        delta = -1 + gamma * val_next_sa - val_curr_sa
         # now, update the q_table for all state-actions according to their values in the eligibility trace
         for s in list(trace.keys()):
             for a in list(trace[s].keys()):
-                q_table[s][a] = full_update * trace[s][a][0]
+                q_table[s][a] = q_table[s][a] + (alpha * delta * trace[s][a][0])
         ### ORIG: q_table[current_state][current_action] = update
         # wrapping up the loop
         if next_state == (7,3):
@@ -164,14 +165,25 @@ def episode(e, alpha, LAMBDA, gamma, possible_actions):
 ns = episode(e, alpha, LAMBDA, gamma, possible_actions)
 
 q_table = mk_new_q_table(possible_actions)
+
+steps = []
+
+# e: fraction of the time to make a random action (instead of greedy)
+e = 0.1
+# LAMBDA: how many steps back in time the activity trace lasts
+LAMBDA = 4
+# gamma: how much the weight of new rewards accrues each step back through the trace
+gamma = .3
+# alpha = discount
+alpha = 0.2
+
 # Ok, now try running until convergence:
-for i in range(1000):
+for i in range(5000):
     ns = episode(e, alpha, LAMBDA, gamma, possible_actions)
-    if i % 1 == 0:
-        print(i)
-        print(ns)
-        if ns < 16:
-            break
+    steps.append(ns)
 
-
+plt.scatter(list(range(5000)),steps)
+plt.ylim((0,100))
+plt.hlines(16, 0, 5000, colors='b')
+plt.show()
 
