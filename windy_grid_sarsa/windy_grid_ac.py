@@ -106,9 +106,11 @@ def episode(possible_actions, beta):
         action = choose_action(actor_table, current_state)
         next_state = environment(current_state, action)
         TD_error = -1 + v_table[next_state] - v_table[current_state]
+
+        # Update the actor table
         actor_table[current_state][action] += beta*TD_error
 
-        # the v-table needs an update...um...
+        # Update the V-table
         update = v_table[current_state] + .1 * (-1 + v_table[next_state] - v_table[current_state])
         v_table[current_state] = update
 
